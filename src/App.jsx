@@ -497,15 +497,12 @@ export default function App() {
       setSelectedImages([]);
       setRefreshListings((current) => current + 1);
     } catch (error) {
-  console.error("Listing submission failed:", error);
-
+ console.error("Listing submission failed:", error);
   setSubmissionError(
     error instanceof Error
       ? `${error.name}: ${error.message}`
       : "Submission failed. Please try again."
   );
-}finally {
-  setSubmitting(false);
 }
   }
 
