@@ -504,6 +504,8 @@ export default function App() {
       ? `${error.name}: ${error.message}`
       : "Submission failed. Please try again."
   );
+}finally {
+  setSubmitting(false);
 }
   }
 
