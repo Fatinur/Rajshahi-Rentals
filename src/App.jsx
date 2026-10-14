@@ -372,14 +372,14 @@ export default function App() {
     setSelectedImages(files);
   }
 
-  async function handleSubmit(event) {
+async function handleSubmit(event) {
     event.preventDefault();
     setSubmissionError("");
     setSubmissionSuccess("");
 
     const description = form.description.trim();
 
-    if (description && (description.length < 10 || description.length > 3000)) {
+    if (description && ((description.length > 0 && description.length < 10) || description.length > 3000)) {
       setSubmissionError(
         "If you provide a description, it must be 10–3,000 characters."
       );
@@ -497,13 +497,16 @@ export default function App() {
       setSelectedImages([]);
       setRefreshListings((current) => current + 1);
     } catch (error) {
- console.error("Listing submission failed:", error);
-  setSubmissionError(
-    error instanceof Error
-      ? `${error.name}: ${error.message}`
-      : "Submission failed. Please try again."
-  );
-}
+      console.error("Listing submission failed:", error);
+      setSubmissionError(
+        error instanceof Error
+          ? `${error.name}: ${error.message}`
+          : "Submission failed. Please try again."
+      );
+    } finally {
+      // Ensures loading state clears out whether it succeeds or fails
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -1216,28 +1219,32 @@ export default function App() {
                 )}
               </div>
 
-              <div className="flex flex-wrap gap-3 border-t border-slate-200 pt-5">
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {submitting ? "Submitting..." : "Publish listing"}
-                </button>
+             <div className="flex flex-wrap gap-3 border-t border-slate-200 pt-5">
+ <button
+  type="submit"
+  disabled={submitting || Boolean(submissionSuccess)}
+  className={`rounded-lg px-6 py-3 font-semibold text-white transition disabled:cursor-not-allowed ${
+    submissionSuccess 
+      ? "bg-green-600 opacity-90 hover:bg-green-600" 
+      : "bg-blue-600 hover:bg-blue-700 disabled:opacity-60"
+  }`}
+>
+  {submissionSuccess ? "Submitted!" : submitting ? "Submitting..." : "Publish listing"}
+</button>
 
-                <button
-                  type="button"
-                  disabled={submitting}
-                  onClick={() => {
-                    setShowSubmissionForm(false);
-                    setSubmissionError("");
-                    setSubmissionSuccess("");
-                  }}
-                  className="rounded-lg border border-slate-300 px-6 py-3 font-semibold text-slate-700 hover:bg-slate-50"
-                >
-                  Cancel
-                </button>
-              </div>
+  <button
+    type="button"
+    disabled={submitting}
+    onClick={() => {
+      setShowSubmissionForm(false);
+      setSubmissionError("");
+      setSubmissionSuccess("");
+    }}
+    className="rounded-lg border border-slate-300 px-6 py-3 font-semibold text-slate-700 hover:bg-slate-50"
+  >
+    Cancel
+  </button>
+</div>
 
               <p className="text-xs text-slate-500">
                 Listings are submitted to our server for validation before
