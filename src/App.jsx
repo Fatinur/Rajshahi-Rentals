@@ -735,7 +735,7 @@ async function handleSubmit(event) {
           <p className="text-sm text-slate-500">
             {loading
               ? "Loading..."
-              : `${visibleProperties.length} properties found`}
+              : `${visibleProperties.length} featured properties`}
           </p>
         </div>
 
