@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "./lib/supabase";
 
 const locations = [
+  // Existing locations — retained for compatibility with current listings.
   "Talaimari",
   "Kazla",
   "Binodpur",
@@ -11,7 +12,218 @@ const locations = [
   "Laxmipur",
   "Court Station",
   "Upashahar",
+  // Northern Rajshahi and Shah Makhdum
+  "Biman Chottor",
+  "Noadapara",
+  "Bara Banagram",
+  "Chhoto Bongram",
+  "Professor Para",
+  "Sopura",
+  "BISIC Industrial Area",
+  "Shalbagan",
+  "Bank Town Residential Area",
+  "Banalata Residential Area",
+  "Ashraful Colony",
+  "Assam Colony",
+  "Poba Rice Mill Area",
+  "Mathurdanga",
+  "Bakhtiarabad",
+  "Koyerdara",
+  // Western Rajshahi and Rajpara
+  "Kashiadanga",
+  "Hargram",
+  "Hargram Newpara",
+  "Hargram Colony",
+  "Hargram Bazar",
+  "Bulanpur",
+  "Baharampur",
+  "Bisimla",
+  "New Bisimla",
+  "Rajpara",
+  "Mahishbathan",
+  "Keshabpur",
+  "Goalpara",
+  "Kazihata",
+  "Dingadoba",
+  "Dingadoba Bank Colony",
+  "Shajipara",
+  "Raipara",
+  "Sreerampur",
+  // Central Rajshahi and Boalia
+  "Saheb Bazar",
+  "Rani Bazar",
+  "Ghoramara",
+  "Kumarpara",
+  "Kadirganj",
+  "Ganakpara",
+  "Sagorpara",
+  "Shiroil",
+  "Shiroil Colony",
+  "Railway Colony",
+  "Shiroil Bus Terminal",
+  "Tikapara",
+  "Sultanabad",
+  "Beldarpara",
+  "Hetem Khan",
+  "Malopara",
+  "Sepai Para",
+  "Fudkipara",
+  "Sonadighi Mor",
+  "Alupatti",
+  "Shekher Chowk",
+  "Gourhanga",
+  "Sosthitola",
+  "New Market",
+  "Greater Road",
+  "C&B Mor",
+  "Sadhur Mor",
+  "Bornali Mor",
+  // Laxmipur and western-central residential areas
+  "Bhata Para",
+  "Helenabad Colony",
+  "Kulupara",
+  "Chandipur",
+  "Betia Para",
+  "Terokhadia",
+  "Terokhadia Housing Estate",
+  "Suburb",
+  "Ramchandrapur",
+  "Ahmadpur",
+  "Boshpara",
+  "Khorkhonia",
+  "Chhayanir Residential Area",
+  "Chandrima Residential Area",
+  "Padma Residential Area",
+  // University and eastern Rajshahi
+  "Talaimari Bazar",
+  "Badha Kazla",
+  "Kajla Gate",
+  "Rajshahi University Campus",
+  "RUET Gate",
+  "Meherchandi",
+  "Chakpara Meherchandi",
+  "Mirerchak",
+  "Raninagar",
+  "Bhadra",
+  "Dashmari",
+  "Dharampur",
+  "Khojapur",
+  "Shyampur",
+  "Sishampur Dashmari",
+  "University Residential Area",
+  // Upashahar and planned residential areas
+  "Upashahar Housing Estate",
+  "Upashahar New Market Area",
+  "Parijat Residential Area",
+  "Mohananda Residential Area",
 ];
+
+function SearchableLocation({
+  value,
+  onChange,
+  options,
+  placeholder = "Type to search locations...",
+  allLabel,
+  required = false,
+}) {
+  const [query, setQuery] = useState(value);
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (!isOpen) setQuery(value);
+  }, [value, isOpen]);
+
+  const normalizedQuery = query.trim().toLowerCase();
+  const filteredOptions = options.filter((area) =>
+    area.toLowerCase().includes(normalizedQuery)
+  );
+
+  const chooseLocation = (area) => {
+    onChange(area);
+    setQuery(area);
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="relative mt-2">
+      <input
+        type="text"
+        value={query}
+        required={required}
+        autoComplete="off"
+        placeholder={placeholder}
+        aria-label={allLabel ? "Search property locations" : "Choose property location"}
+        aria-expanded={isOpen}
+        onFocus={() => setIsOpen(true)}
+        onChange={(event) => {
+          const nextQuery = event.target.value;
+          setQuery(nextQuery);
+          setIsOpen(true);
+          if (value) onChange("");
+          if (!nextQuery) onChange("");
+        }}
+        onBlur={() => {
+          const exactMatch = options.find(
+            (area) => area.toLowerCase() === query.trim().toLowerCase()
+          );
+          if (exactMatch) {
+            onChange(exactMatch);
+            setQuery(exactMatch);
+          } else {
+            setQuery(value);
+          }
+          setIsOpen(false);
+        }}
+        onKeyDown={(event) => {
+          const exactMatch = options.find(
+            (area) => area.toLowerCase() === query.trim().toLowerCase()
+          );
+          if (event.key === "Enter" && exactMatch) {
+            event.preventDefault();
+            chooseLocation(exactMatch);
+          }
+          if (event.key === "Escape") setIsOpen(false);
+        }}
+        className={`${inputClass} mt-0`}
+      />
+
+      {isOpen && (
+        <div className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-slate-200 bg-white py-1 text-slate-900 shadow-xl">
+          {allLabel && (
+            <button
+              type="button"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => chooseLocation("")}
+              className="w-full px-3 py-2 text-left text-sm hover:bg-blue-50"
+            >
+              {allLabel}
+            </button>
+          )}
+          {filteredOptions.length > 0 ? (
+            filteredOptions.map((area) => (
+              <button
+                type="button"
+                key={area}
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => chooseLocation(area)}
+                className={`w-full px-3 py-2 text-left text-sm hover:bg-blue-50 ${
+                  value === area ? "bg-blue-50 font-semibold" : ""
+                }`}
+              >
+                {area}
+              </button>
+            ))
+          ) : (
+            <p className="px-3 py-2 text-sm text-slate-500">
+              No matching locations. Try another spelling.
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const propertyTypes = ["Flat", "Sublet", "Hostel"];
 
@@ -555,21 +767,16 @@ async function handleSubmit(event) {
             <h2 className="mb-6 text-xl font-bold">Find your ideal rental</h2>
 
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              <label className={labelClass}>
-                Location
-                <select
+              <div>
+                <span className={labelClass}>Location</span>
+                <SearchableLocation
                   value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className={inputClass}
-                >
-                  <option value="">All locations</option>
-                  {locations.map((area) => (
-                    <option key={area} value={area}>
-                      {area}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  onChange={setLocation}
+                  options={locations}
+                  placeholder="Search by area name..."
+                  allLabel="All locations"
+                />
+              </div>
 
               <label className={labelClass}>
                 Number of rooms
@@ -947,22 +1154,16 @@ async function handleSubmit(event) {
                   </select>
                 </label>
 
-                <label className={labelClass}>
-                  Location *
-                  <select
-                    required
+                <div>
+                  <span className={labelClass}>Location *</span>
+                  <SearchableLocation
                     value={form.location}
-                    onChange={(e) => updateForm("location", e.target.value)}
-                    className={inputClass}
-                  >
-                    <option value="">Choose an area</option>
-                    {locations.map((area) => (
-                      <option key={area} value={area}>
-                        {area}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                    onChange={(value) => updateForm("location", value)}
+                    options={locations}
+                    placeholder="Type to find an area..."
+                    required
+                  />
+                </div>
 
                 <label className={labelClass}>
                   Monthly rent (৳) *
